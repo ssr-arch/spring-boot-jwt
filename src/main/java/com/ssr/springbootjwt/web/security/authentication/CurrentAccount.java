@@ -18,4 +18,11 @@ public class CurrentAccount {
         this.name = name;
     }
 
+    @Override
+    public String toString() {
+        return String.format(
+                "id(%s),name(%s)",
+                String.valueOf(id), name);
+    }
+
 }

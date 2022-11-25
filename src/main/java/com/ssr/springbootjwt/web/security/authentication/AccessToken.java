@@ -54,4 +54,11 @@ public class AccessToken {
         return headerValue.replace(TOKEN_PREFIX, "");
     }
 
+    public CurrentAccount getCurrentAccount(String jwt) {
+        var decoded = JWT.decode(jwt);
+        return new CurrentAccount(
+                decoded.getClaim("id").asLong(),
+                decoded.getClaim("name").asString());
+    }
+
 }
