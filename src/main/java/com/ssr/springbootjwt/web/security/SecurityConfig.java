@@ -11,6 +11,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.auth0.jwt.algorithms.Algorithm;
@@ -20,28 +22,36 @@ import com.ssr.springbootjwt.web.security.authentication.CustomJwtAuthentication
 import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationFailureHandler;
 import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationFilter;
 import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationSuccessHandler;
-import com.ssr.springbootjwt.web.security.authorization.JwtAuthorizationFailureHandler;
+import com.ssr.springbootjwt.web.security.authorization.JwtAuthorizationFilter;
 import com.ssr.springbootjwt.web.security.authorization.JwtAuthorizationManager;
+import com.ssr.springbootjwt.web.security.authorization.JwtInValidEntryPoint;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthorizationManager jwtAuthorizationManager)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AccessToken accessToken,
+            AuthenticationManager authenticationManager) throws Exception {
+        var tokenEndpoint = AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/rest/api/v1/token");
         http.authorizeHttpRequests(autz -> autz
-                .requestMatchers(HttpMethod.POST, "/rest/api/v1/token").permitAll()
-                .anyRequest().access(jwtAuthorizationManager))
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthorizationFailureHandler()))
+                .requestMatchers(tokenEndpoint).permitAll()
+                .anyRequest().access(new JwtAuthorizationManager(accessToken)))
+                .addFilterBefore(new JwtAuthenticationFilter(
+                        authenticationManager,
+                        tokenEndpoint,
+                        new JwtAuthenticationSuccessHandler(accessToken),
+                        new JwtAuthenticationFailureHandler()),
+                        LogoutFilter.class)
+                .addFilterAfter(new JwtAuthorizationFilter(
+                        accessToken),
+                        AuthorizationFilter.class)
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtInValidEntryPoint()))
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         return http.build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
     }
 
     @Bean
@@ -58,14 +68,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(
-            AuthenticationManager authenticationManager,
-            AccessToken accessToken) {
-        return new JwtAuthenticationFilter(
-                authenticationManager,
-                new AntPathRequestMatcher("/rest/api/v1/token", HttpMethod.POST.name()),
-                new JwtAuthenticationSuccessHandler(accessToken),
-                new JwtAuthenticationFailureHandler());
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean
@@ -73,11 +77,6 @@ public class SecurityConfig {
             PasswordEncoder passwordEncoder,
             AccountRepository accountRepository) {
         return new CustomJwtAuthenticationProvider(passwordEncoder, accountRepository);
-    }
-
-    @Bean
-    public JwtAuthorizationManager jwtAuthorizationManager(AccessToken accessToken) {
-        return new JwtAuthorizationManager(accessToken);
     }
 
 }
