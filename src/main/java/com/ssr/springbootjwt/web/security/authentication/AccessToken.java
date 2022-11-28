@@ -43,15 +43,17 @@ public class AccessToken {
         return verifier.verify(jwt);
     }
 
-    public String get(HttpServletRequest request) {
+    public boolean isExists(HttpServletRequest request) {
         var headerValue = request.getHeader(HEADER_NAME);
-        if (headerValue == null) {
-            return null;
+        return headerValue != null && headerValue.startsWith(TOKEN_PREFIX);
+    }
+
+    public String get(HttpServletRequest request) {
+        var tokenValue = request.getHeader(HEADER_NAME);
+        if (tokenValue == null) {
+            throw new NullPointerException();
         }
-        if (!headerValue.startsWith(TOKEN_PREFIX)) {
-            return null;
-        }
-        return headerValue.replace(TOKEN_PREFIX, "");
+        return tokenValue.replace(TOKEN_PREFIX, "");
     }
 
     public CurrentAccount getCurrentAccount(String jwt) {
