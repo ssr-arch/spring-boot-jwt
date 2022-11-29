@@ -1,11 +1,14 @@
-package com.ssr.springbootjwt.web.security.authentication;
+package com.ssr.springbootjwt.web.security;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.ssr.springbootjwt.web.security.authentication.CurrentAccount;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,6 +28,7 @@ public class AccessToken {
     }
 
     public String create(CurrentAccount account) {
+        Map<String, String> payload = new HashMap<>();
         var calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.MINUTE, expiresMinute);
