@@ -1,9 +1,7 @@
-package com.ssr.springbootjwt.web.security;
+package com.ssr.springbootjwt.web.security.token;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -16,6 +14,7 @@ public class AccessToken {
 
     public static final String HEADER_NAME = "X-AUTH-TOKEN";
     public static final String TOKEN_PREFIX = "BEARER ";
+    public static final String KEY = "access_token";
 
     private final String issuer;
     private final Algorithm algorithm;
@@ -28,14 +27,14 @@ public class AccessToken {
     }
 
     public String create(CurrentAccount account) {
-        Map<String, String> payload = new HashMap<>();
         var calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.MINUTE, expiresMinute);
         return JWT.create()
                 .withIssuer(issuer)
-                .withClaim("id", account.getId())
-                .withClaim("name", account.getName())
+                .withClaim("user_id", account.getId())
+                .withClaim("user_name", account.getName())
+                .withIssuedAt(new Date())
                 .withExpiresAt(calendar.toInstant())
                 .sign(algorithm);
     }
@@ -63,8 +62,8 @@ public class AccessToken {
     public CurrentAccount getCurrentAccount(String jwt) {
         var decoded = JWT.decode(jwt);
         return new CurrentAccount(
-                decoded.getClaim("id").asLong(),
-                decoded.getClaim("name").asString());
+                decoded.getClaim("user_id").asLong(),
+                decoded.getClaim("user_name").asString());
     }
 
 }

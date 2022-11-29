@@ -8,7 +8,7 @@ import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
-import com.ssr.springbootjwt.web.security.authentication.AccessToken;
+import com.ssr.springbootjwt.web.security.token.AccessToken;
 
 public class JwtAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
 

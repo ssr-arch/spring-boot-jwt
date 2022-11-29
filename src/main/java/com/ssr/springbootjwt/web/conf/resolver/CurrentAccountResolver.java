@@ -7,8 +7,8 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import com.ssr.springbootjwt.web.security.authentication.AccessToken;
 import com.ssr.springbootjwt.web.security.authentication.CurrentAccount;
+import com.ssr.springbootjwt.web.security.token.AccessToken;
 
 import jakarta.servlet.http.HttpServletRequest;
 

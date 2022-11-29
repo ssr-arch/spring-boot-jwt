@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.ssr.springbootjwt.web.conf.resolver.CurrentAccountResolver;
-import com.ssr.springbootjwt.web.security.authentication.AccessToken;
+import com.ssr.springbootjwt.web.security.token.AccessToken;
 
 @EnableWebMvc
 @Configuration
