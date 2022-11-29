@@ -1,8 +1,8 @@
 package com.ssr.springbootjwt;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -19,62 +19,70 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 
+import net.bytebuddy.utility.RandomString;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class SpringBootJwtApplicationTests {
 
-	@Autowired
-	MockMvc mockMvc;
+    @Autowired
+    MockMvc mockMvc;
 
-	@Test
-	void generateTokenTest() throws Exception {
-		var endPoint = "/rest/api/v1/token";
-		var result = mockMvc.perform(MockMvcRequestBuilders
-				.post(endPoint)
-				.param("username", "username1")
-				.param("password", "password"))
-				.andDo(MockMvcResultHandlers.print())
-				.andExpect(MockMvcResultMatchers.status().isOk())
-				.andExpect(MockMvcResultMatchers.header().exists("X-AUTH-TOKEN"))
-				.andReturn();
-		var token = result.getResponse().getHeader("X-AUTH-TOKEN");
-		assertNotNull(token);
-		var jwt = token.replace("BEARER ", "");
-		System.out.println(jwt);
-	}
+    @Test
+    void generateTokenTest() throws Exception {
+        var endPoint = "/rest/api/v1/token";
+        var result = mockMvc.perform(MockMvcRequestBuilders
+                .post(endPoint)
+                .param("username", "username1")
+                .param("password", "password"))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+        var body = result.getResponse().getContentAsString();
+        System.out.println(body);
+    }
 
-	@Test
-	void authorizeTest() throws Exception {
-		// expire after 10 minutes
-		var jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjb20uc3NyIiwibmFtZSI6InVzZXJuYW1lMSIsImlkIjoxLCJleHAiOjE2NjkzNTgwMDJ9.B7ikxd0BY6bA0RaqYVuEIyuuQ2MbWxklpqAlWgPoR4U";
-		var endPoint = "/rest/api/v1/accounts";
-		mockMvc.perform(MockMvcRequestBuilders
-				.get(endPoint)
-				.header("X-AUTH-TOKEN", "BEARER " + jwt))
-				.andDo(MockMvcResultHandlers.print());
-	}
+    @Test
+    void authorizeTest() throws Exception {
+        // expire after 10 minutes
+        var accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX25hbWUiOiJ1c2VybmFtZTEiLCJpc3MiOiJjb20uc3NyIiwiZXhwIjoxNjY5NzA3MzY5LCJpYXQiOjE2Njk3MDY3Njl9.IOmMogKnQjWUMHqudryBbjLFDg5i-Gaihu3xmI5EYOg";
+        var refreshToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiMSIsInVzZXJfbmFtZSI6InVzZXJuYW1lMSIsImlzcyI6ImNvbS5zc3IiLCJleHAiOjE2NzAzMTE1NjksImlhdCI6MTY2OTcwNjc2OX0.PJJujkQx0KVySp3OzV8_izLzSTP6FG1SP9nIa5Ovsyo";
+        var endPoint = "/rest/api/v1/accounts";
+        mockMvc.perform(MockMvcRequestBuilders
+                .get(endPoint)
+                .header("X-AUTH-TOKEN", "BEARER " + accessToken)
+                .header("Referesh-Token", refreshToken))
+                .andDo(MockMvcResultHandlers.print());
+    }
 
-	@Test
-	void expiredTest() throws InterruptedException {
-		var issuer = "test";
-		var algorithm = Algorithm.HMAC256("secret");
-		var calendar = Calendar.getInstance();
-		calendar.setTime(new Date());
-		calendar.add(Calendar.SECOND, 1);
-		Thread.sleep(2000);
-		var jwt = JWT.create()
-				.withIssuer(issuer)
-				.withClaim("name", "username")
-				.withExpiresAt(calendar.toInstant())
-				.sign(algorithm);
-		var verifier = JWT.require(algorithm)
-				.withIssuer(issuer)
-				.build();
-		var ex = assertThrows(TokenExpiredException.class, () -> {
-			verifier.verify(jwt);
-		});
-		System.out.println(ex.getMessage());
+    @Test
+    void expiredTest() throws InterruptedException {
+        var issuer = "test";
+        var algorithm = Algorithm.HMAC256("secret");
+        var calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.SECOND, 1);
+        Thread.sleep(2000);
+        var jwt = JWT.create()
+                .withIssuer(issuer)
+                .withClaim("name", "username")
+                .withExpiresAt(calendar.toInstant())
+                .sign(algorithm);
+        var verifier = JWT.require(algorithm)
+                .withIssuer(issuer)
+                .build();
+        var ex = assertThrows(TokenExpiredException.class, () -> {
+            verifier.verify(jwt);
+        });
+        System.out.println(ex.getMessage());
+    }
 
-	}
+    @Test
+    public void generateRondomTst() throws UnsupportedEncodingException {
+        for (int i = 0; i < 5; i++) {
+            var a = RandomString.make(5);
+            System.out.println(a);
+        }
+    }
 
 }
