@@ -42,6 +42,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
         // do not set authResult in security context holder
+        // super.successfulAuthentication(request, response, chain, authResult);
         getSuccessHandler().onAuthenticationSuccess(request, response, authResult);
     }
 
