@@ -17,7 +17,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.auth0.jwt.algorithms.Algorithm;
 import com.ssr.springbootjwt.db.repository.AccountRepository;
-import com.ssr.springbootjwt.web.security.authentication.AccessToken;
 import com.ssr.springbootjwt.web.security.authentication.CustomJwtAuthenticationProvider;
 import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationFailureHandler;
 import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationFilter;
@@ -25,6 +24,8 @@ import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationSucces
 import com.ssr.springbootjwt.web.security.authorization.JwtAuthorizationFilter;
 import com.ssr.springbootjwt.web.security.authorization.JwtAuthorizationManager;
 import com.ssr.springbootjwt.web.security.authorization.JwtInValidEntryPoint;
+import com.ssr.springbootjwt.web.security.token.AccessToken;
+import com.ssr.springbootjwt.web.security.token.RefreshToken;
 
 @EnableWebSecurity
 @Configuration
@@ -34,6 +35,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AccessToken accessToken,
+            RefreshToken refreshToken,
             AuthenticationManager authenticationManager) throws Exception {
         var tokenEndpoint = AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/rest/api/v1/token");
         http.authorizeHttpRequests(autz -> autz
@@ -42,7 +44,7 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(
                         authenticationManager,
                         tokenEndpoint,
-                        new JwtAuthenticationSuccessHandler(accessToken),
+                        new JwtAuthenticationSuccessHandler(accessToken, refreshToken),
                         new JwtAuthenticationFailureHandler()),
                         LogoutFilter.class)
                 .addFilterAfter(new JwtAuthorizationFilter(
@@ -68,12 +70,21 @@ public class SecurityConfig {
     }
 
     @Bean
+    public RefreshToken refreshToken() {
+        return new RefreshToken(
+                "com.ssr",
+                7,
+                Algorithm.HMAC256("secret"));
+    }
+
+    @Bean
     public AuthenticationManager authenticationManager(
             HttpSecurity http,
             PasswordEncoder passwordEncoder,
             AccountRepository accountRepository) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .authenticationProvider(new CustomJwtAuthenticationProvider(passwordEncoder, accountRepository))
+                .authenticationProvider(
+                        new CustomJwtAuthenticationProvider(passwordEncoder, accountRepository))
                 .build();
     }
 
