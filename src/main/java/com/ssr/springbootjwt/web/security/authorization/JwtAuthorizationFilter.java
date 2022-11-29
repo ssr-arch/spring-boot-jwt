@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
-import com.ssr.springbootjwt.web.security.authentication.AccessToken;
+import com.ssr.springbootjwt.web.security.token.AccessToken;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,8 +32,10 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         try {
             accessToken.verify(jwt);
         } catch (JWTVerificationException e) {
-            logger.severe(e.toString());
-            throw new AccessDeniedException(e.toString());
+            logger.severe("authorization failed");
+            // handle AccessDeniedHandler if authentication not annonymous or rememberme
+            SecurityContextHolder.getContext().setAuthentication(null);
+            throw new AccessDeniedException("authorization failed", e);
         }
         filterChain.doFilter(request, response);
     }

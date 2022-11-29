@@ -21,9 +21,9 @@ import com.ssr.springbootjwt.web.security.authentication.CustomJwtAuthentication
 import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationFailureHandler;
 import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationFilter;
 import com.ssr.springbootjwt.web.security.authentication.JwtAuthenticationSuccessHandler;
+import com.ssr.springbootjwt.web.security.authorization.AuthorizationFailureHandler;
 import com.ssr.springbootjwt.web.security.authorization.JwtAuthorizationFilter;
 import com.ssr.springbootjwt.web.security.authorization.JwtAuthorizationManager;
-import com.ssr.springbootjwt.web.security.authorization.JwtInValidEntryPoint;
 import com.ssr.springbootjwt.web.security.token.AccessToken;
 import com.ssr.springbootjwt.web.security.token.RefreshToken;
 
@@ -41,7 +41,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(autz -> autz
                 .requestMatchers(tokenEndpoint).permitAll()
                 .anyRequest().access(new JwtAuthorizationManager(accessToken)))
-                .addFilterBefore(new JwtAuthenticationFilter(
+                .addFilterAfter(new JwtAuthenticationFilter(
                         authenticationManager,
                         tokenEndpoint,
                         new JwtAuthenticationSuccessHandler(accessToken, refreshToken),
@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .addFilterAfter(new JwtAuthorizationFilter(
                         accessToken),
                         AuthorizationFilter.class)
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtInValidEntryPoint()))
+                .exceptionHandling(ex -> ex.accessDeniedHandler(new AuthorizationFailureHandler()))
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         return http.build();
