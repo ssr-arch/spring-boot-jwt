@@ -45,7 +45,7 @@ public class Account implements ResponseJson<AccountJson> {
     }
 
     @Override
-    public AccountJson toJson() {
+    public AccountJson toJsonEntity() {
         return new AccountJson(id, name);
     }
 

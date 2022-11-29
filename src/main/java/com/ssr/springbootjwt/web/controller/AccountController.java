@@ -26,7 +26,7 @@ public class AccountController {
     @GetMapping(path = "/accounts")
     public List<AccountJson> fetchAccounts(CurrentAccount currentAccount) {
         logger.info(String.format("account(%s) accessed", currentAccount));
-        return accountService.findAll().stream().map(Account::toJson).toList();
+        return accountService.findAll().stream().map(Account::toJsonEntity).toList();
     }
 
 }
