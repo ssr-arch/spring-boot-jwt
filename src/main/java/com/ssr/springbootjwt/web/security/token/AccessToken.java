@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public class AccessToken {
 
-    public static final String HEADER_NAME = "X-AUTH-TOKEN";
+    public static final String REQUEST_HEADER = "X-AUTH-TOKEN";
     public static final String TOKEN_PREFIX = "BEARER ";
     public static final String KEY = "access_token";
 
@@ -47,12 +47,12 @@ public class AccessToken {
     }
 
     public boolean isExists(HttpServletRequest request) {
-        var headerValue = request.getHeader(HEADER_NAME);
+        var headerValue = request.getHeader(REQUEST_HEADER);
         return headerValue != null && headerValue.startsWith(TOKEN_PREFIX);
     }
 
     public String get(HttpServletRequest request) {
-        var tokenValue = request.getHeader(HEADER_NAME);
+        var tokenValue = request.getHeader(REQUEST_HEADER);
         if (tokenValue == null) {
             throw new NullPointerException();
         }
@@ -60,6 +60,15 @@ public class AccessToken {
     }
 
     public CurrentAccount getCurrentAccount(String jwt) {
+        var decoded = JWT.decode(jwt);
+        return new CurrentAccount(
+                decoded.getClaim("user_id").asLong(),
+                decoded.getClaim("user_name").asString());
+    }
+
+    public CurrentAccount getCurrentAccountWithNoVerify(HttpServletRequest request) {
+        var token = request.getHeader(REQUEST_HEADER);
+        var jwt = token.replace(TOKEN_PREFIX, "");
         var decoded = JWT.decode(jwt);
         return new CurrentAccount(
                 decoded.getClaim("user_id").asLong(),

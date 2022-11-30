@@ -38,8 +38,9 @@ public class SecurityConfig {
             RefreshToken refreshToken,
             AuthenticationManager authenticationManager) throws Exception {
         var tokenEndpoint = AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/rest/api/v1/token");
+        var refreshEndpoint = AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/rest/api/v1/token/refresh");
         http.authorizeHttpRequests(autz -> autz
-                .requestMatchers(tokenEndpoint).permitAll()
+                .requestMatchers(tokenEndpoint, refreshEndpoint).permitAll()
                 .anyRequest().access(new JwtAuthorizationManager(accessToken)))
                 .addFilterAfter(new JwtAuthenticationFilter(
                         authenticationManager,

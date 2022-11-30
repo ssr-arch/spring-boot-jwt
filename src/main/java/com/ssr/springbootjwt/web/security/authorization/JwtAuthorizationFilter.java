@@ -27,6 +27,10 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        if (request.getRequestURI().equals("/rest/api/v1/token/refresh")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         // request header has accesstoken checked with JwtAuthorizationManager
         var jwt = accessToken.get(request);
         try {

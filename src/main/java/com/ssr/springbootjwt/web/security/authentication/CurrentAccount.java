@@ -25,4 +25,12 @@ public class CurrentAccount {
                 String.valueOf(id), name);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof CurrentAccount)) {
+            return false;
+        }
+        return this.id == ((CurrentAccount) obj).id;
+    }
+
 }
